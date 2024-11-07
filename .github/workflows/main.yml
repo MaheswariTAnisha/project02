@@ -1,0 +1,26 @@
+name: Cleanup Merged Branches
+
+on:
+  schedule:
+    - cron: '*/5 * * * *' # Runs every Sunday at midnight UTC
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Delete Merged Branches
+        run: |
+          git fetch --prune
+          for branch in $(git branch -r --merged | grep -vE 'master|main|HEAD'); do
+            branch_name=$(echo $branch | sed 's|origin/||')
+            echo "Deleting branch: $feature1"
+            git push origin --delete $feature1
+          done
+        env:
+          GITHUB_TOKEN: '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'
