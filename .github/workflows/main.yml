@@ -2,7 +2,7 @@ name: Cleanup Merged Branches
 
 on:
   schedule:
-    - cron: '*/5 * * * *' # Runs every Sunday at midnight UTC
+    - cron: '0 0 * * *' # Runs daily at midnight UTC (adjust as needed)
   pull_request:
     types:
       - closed
@@ -14,13 +14,20 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Delete Merged Branches
+      - name: Delete Merged Feature Branches
         run: |
           git fetch --prune
-          for branch in $(git branch -r --merged | grep -vE 'master|main|HEAD'); do
-            branch_name=$(echo $branch | sed 's|origin/||')
-            echo "Deleting branch: $branch_name"
-            git push origin --delete $branch_name
-          done
+          # Get only remote merged branches prefixed with 'feature/'
+          branches=$(git branch -r --merged | grep 'origin/feature/' | grep -vE 'HEAD')
+
+          if [ -z "$branches" ]; then
+            echo "No merged feature branches to delete."
+          else
+            for branch in $branches; do
+              branch_name=$(echo $branch | sed 's|origin/||')
+              echo "Deleting branch: $branch_name"
+              git push origin --delete $branch_name
+            done
+          fi
         env:
-          GITHUB_TOKEN: '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'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
