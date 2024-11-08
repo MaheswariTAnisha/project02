@@ -21,7 +21,6 @@ jobs:
           else
             echo "Proceeding with branch deletion. Current time is $current_time."
           fi
-
       - name: Checkout Repository
         uses: actions/checkout@v3
 
@@ -29,18 +28,17 @@ jobs:
         run: |
           git checkout master
           git pull origin master  # Ensure the master branch is up to date
-
-      - name: List and Delete Merged Feature Branches
+      - name: Delete Merged Feature Branch
         run: |
-          git fetch --prune  # Fetch all branches and prune deleted ones
+          git fetch --prune
+          branch_name=${{ github.event.pull_request.head.ref }}
           
-          # Get a list of all merged branches
-          merged_branches=$(git branch -r --merged origin/master | grep 'origin/feature/' | sed 's/origin\///')
-
-          # Loop through each branch and delete it remotely
-          for branch in $merged_branches; do
-            echo "Deleting merged feature branch: $branch"
-            git push origin --delete "$branch"
-          done
+          # Check if the branch follows the 'feature/' naming convention
+          if [[ $branch_name == feature* ]]; then
+            echo "Deleting merged feature branch: $branch_name"
+            git push origin --delete $branch_name
+          else
+            echo "Branch $branch_name does not match 'feature/' pattern. Skipping deletion."
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
