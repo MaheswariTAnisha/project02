@@ -36,6 +36,11 @@ jobs:
           set -x  # Print each command for debugging
           
           git fetch --prune
+          # Ensure master branch is up-to-date
+          git checkout master
+          git pull origin master
+
+          # List merged branches into master
           merged_branches=$(git branch -r --merged master | grep 'origin/feature/' | grep -vE 'HEAD|master')
           
           if [ -z "$merged_branches" ]; then
