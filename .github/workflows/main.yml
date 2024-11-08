@@ -30,7 +30,7 @@ jobs:
           set -x  # Print each command for debugging
           
           git fetch --prune
-          merged_branches=$(git branch -r --merged | grep 'origin/feature/' | grep -vE 'HEAD|main|master')
+          merged_branches=$(git branch -r --merged master | grep 'origin/feature/' | grep -vE 'HEAD|master')
           
           if [ -z "$merged_branches" ]; then
             echo "No merged feature branches to delete."
