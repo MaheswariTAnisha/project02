@@ -14,7 +14,7 @@ jobs:
         id: check_time
         run: |
           current_time=$(date +%H%M)
-          cutoff_time=1750  # Set the cutoff time to 5:30 PM (17:30)
+          cutoff_time=1100  # Set the cutoff time to 5:30 PM (17:30)
           if [ "$current_time" -gt "$cutoff_time" ]; then
             echo "Action will not run after 5:30 PM. Current time is $current_time."
             exit 1  # Exit the workflow without failure
