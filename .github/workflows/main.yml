@@ -30,26 +30,17 @@ jobs:
           git checkout master
           git pull origin master  # Ensure the master branch is up to date
 
-      - name: Delete All Merged Feature Branches
+      - name: List and Delete Merged Feature Branches
         run: |
-          set -e  # Stop execution on errors
-          set -x  # Print each command for debugging
+          git fetch --prune  # Fetch all branches and prune deleted ones
           
-          git fetch --prune
-          git checkout master
-          git pull origin master
+          # Get a list of all merged branches
+          merged_branches=$(git branch -r --merged origin/master | grep 'origin/feature/' | sed 's/origin\///')
 
-          # List all remote branches and check if they are merged into master
-          merged_branches=$(git branch -r --merged master | grep 'origin/' | grep -vE 'HEAD|master')
-
-          if [ -z "$merged_branches" ]; then
-            echo "No merged feature branches to delete."
-          else
-            for branch in $merged_branches; do
-              branch_name=$(echo $branch | sed 's|origin/||')
-              echo "Deleting merged feature branch: $branch_name"
-              git push origin --delete $branch_name
-            done
-          fi
+          # Loop through each branch and delete it remotely
+          for branch in $merged_branches; do
+            echo "Deleting merged feature branch: $branch"
+            git push origin --delete "$branch"
+          done
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
