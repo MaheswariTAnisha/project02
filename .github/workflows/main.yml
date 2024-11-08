@@ -40,7 +40,7 @@ jobs:
           git pull origin master
 
           # List all remote branches and check if they are merged into master
-          merged_branches=$(git branch -r --merged master | grep 'origin/feature/' | grep -vE 'HEAD|master')
+          merged_branches=$(git branch -r --merged master | grep 'origin/' | grep -vE 'HEAD|master')
 
           if [ -z "$merged_branches" ]; then
             echo "No merged feature branches to delete."
