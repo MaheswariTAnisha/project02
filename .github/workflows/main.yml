@@ -25,17 +25,19 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Delete Merged Feature Branch
+      - name: Delete All Merged Feature Branches
         run: |
           git fetch --prune
-          branch_name=${{ github.event.pull_request.head.ref }}
-          
-          # Check if the branch follows the 'feature/' naming convention
-          if [[ $branch_name == feature* ]]; then
+          merged_branches=$(git branch -r --merged | grep 'origin/feature/' | grep -vE 'HEAD|main|master')
+
+          if [ -z "$merged_branches" ]; then
+             echo "No merged feature branches to delete."
+          else
+            for branch in $merged_branches; do
+            branch_name=$(echo $branch | sed 's|origin/||')
             echo "Deleting merged feature branch: $branch_name"
             git push origin --delete $branch_name
-          else
-            echo "Branch $branch_name does not match 'feature/' pattern. Skipping deletion."
+            done
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
