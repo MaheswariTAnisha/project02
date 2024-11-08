@@ -45,9 +45,15 @@ jobs:
 
           # Loop through each branch and delete if it follows 'feature/' naming
           for branch_name in $merged_branches; do
-            if [[ $branch_name == feature* ]]; then
+            if [[ $branch_name == feature/* ]]; then
               echo "Deleting merged feature branch: $branch_name"
-              git push origin --delete $branch_name
+              
+              # Check if the branch exists on the remote before attempting deletion
+              if git ls-remote --exit-code --heads origin $branch_name; then
+                git push origin --delete $branch_name
+              else
+                echo "Branch $branch_name does not exist on the remote. Skipping deletion."
+              fi
             else
               echo "Branch $branch_name does not match 'feature/' pattern. Skipping deletion."
             fi
