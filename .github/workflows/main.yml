@@ -39,7 +39,7 @@ jobs:
           git checkout master
           git pull origin master
 
-          # Find merged branches directly using 'git branch -r --merged'
+          # List all remote branches and check if they are merged into master
           merged_branches=$(git branch -r --merged master | grep 'origin/feature/' | grep -vE 'HEAD|master')
 
           if [ -z "$merged_branches" ]; then
