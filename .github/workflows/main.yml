@@ -43,9 +43,9 @@ jobs:
           # Get a list of all merged pull requests
           merged_branches=$(gh pr list --state merged --json headRefName -q '.[].headRefName')
 
-          # Loop through each branch and delete if it follows 'feature/' naming
+          # Loop through each branch and delete if it follows 'feature*' naming
           for branch_name in $merged_branches; do
-            if [[ $branch_name == feature/* ]]; then
+            if [[ $branch_name == feature* ]]; then
               echo "Deleting merged feature branch: $branch_name"
               
               # Check if the branch exists on the remote before attempting deletion
@@ -55,7 +55,7 @@ jobs:
                 echo "Branch $branch_name does not exist on the remote. Skipping deletion."
               fi
             else
-              echo "Branch $branch_name does not match 'feature/' pattern. Skipping deletion."
+              echo "Branch $branch_name does not match 'feature*' pattern. Skipping deletion."
             fi
           done
         env:
