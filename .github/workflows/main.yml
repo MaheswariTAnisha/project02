@@ -40,20 +40,15 @@ jobs:
           git checkout master
           git pull origin master
 
-          # List merged branches into master
-          merged_branches=$(git branch -r --merged master | grep 'origin/feature/' | grep -vE 'HEAD|master')
-          
+          # Find merged branches using git log
+          merged_branches=$(git log --merges --pretty=format:"%s" origin/master | grep -o 'feature[0-9]*' | sort -u)
+
           if [ -z "$merged_branches" ]; then
             echo "No merged feature branches to delete."
           else
             for branch in $merged_branches; do
-              branch_name=$(echo $branch | sed 's|origin/||')
-              if [[ -n "$branch_name" && "$branch_name" == feature* ]]; then
-                echo "Deleting merged feature branch: $branch_name"
-                git push origin --delete $branch_name
-              else
-                echo "Skipping deletion of branch: $branch_name"
-              fi
+              echo "Deleting merged feature branch: $branch"
+              git push origin --delete $branch
             done
           fi
         env:
