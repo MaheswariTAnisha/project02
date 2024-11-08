@@ -21,8 +21,14 @@ jobs:
           else
             echo "Proceeding with branch deletion. Current time is $current_time."
           fi
+
       - name: Checkout Repository
         uses: actions/checkout@v3
+
+      - name: Checkout master branch
+        run: |
+          git checkout master
+          git pull origin master  # Ensure the master branch is up to date
 
       - name: Delete All Merged Feature Branches
         run: |
