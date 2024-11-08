@@ -14,29 +14,35 @@ jobs:
         id: check_time
         run: |
           current_time=$(date +%H%M)
-          cutoff_time=1930  # Set the cutoff time to 5:30 PM (17:30)
+          cutoff_time=1930  
           if [ "$current_time" -gt "$cutoff_time" ]; then
             echo "Action will not run after 5:30 PM. Current time is $current_time."
-            exit 1  # Exit the workflow without failure
+            exit 0  # Exit the workflow without marking it as failed
           else
             echo "Proceeding with branch deletion. Current time is $current_time."
           fi
-
       - name: Checkout Repository
         uses: actions/checkout@v3
 
       - name: Delete All Merged Feature Branches
         run: |
+          set -e  # Stop execution on errors
+          set -x  # Print each command for debugging
+          
           git fetch --prune
           merged_branches=$(git branch -r --merged | grep 'origin/feature/' | grep -vE 'HEAD|main|master')
-
+          
           if [ -z "$merged_branches" ]; then
-             echo "No merged feature branches to delete."
+            echo "No merged feature branches to delete."
           else
             for branch in $merged_branches; do
-            branch_name=$(echo $branch | sed 's|origin/||')
-            echo "Deleting merged feature branch: $branch_name"
-            git push origin --delete $branch_name
+              branch_name=$(echo $branch | sed 's|origin/||')
+              if [[ -n "$branch_name" && "$branch_name" == feature* ]]; then
+                echo "Deleting merged feature branch: $branch_name"
+                git push origin --delete $branch_name
+              else
+                echo "Skipping deletion of branch: $branch_name"
+              fi
             done
           fi
         env:
