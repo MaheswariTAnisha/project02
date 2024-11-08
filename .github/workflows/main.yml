@@ -21,6 +21,7 @@ jobs:
           else
             echo "Proceeding with branch deletion. Current time is $current_time."
           fi
+
       - name: Checkout Repository
         uses: actions/checkout@v3
 
@@ -28,17 +29,28 @@ jobs:
         run: |
           git checkout master
           git pull origin master  # Ensure the master branch is up to date
-      - name: Delete Merged Feature Branch
+
+      - name: Install GitHub CLI
+        run: |
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /usr/share/keyrings/githubcli-archive-keyring.gpg >/dev/null
+          sudo apt update
+          sudo apt install gh
+
+      - name: Delete Merged Feature Branches
         run: |
           git fetch --prune
-          branch_name=${{ github.event.pull_request.head.ref }}
           
-          # Check if the branch follows the 'feature/' naming convention
-          if [[ $branch_name == feature* ]]; then
-            echo "Deleting merged feature branch: $branch_name"
-            git push origin --delete $branch_name
-          else
-            echo "Branch $branch_name does not match 'feature/' pattern. Skipping deletion."
-          fi
+          # Get a list of all merged pull requests
+          merged_branches=$(gh pr list --state merged --json headRefName -q '.[].headRefName')
+
+          # Loop through each branch and delete if it follows 'feature/' naming
+          for branch_name in $merged_branches; do
+            if [[ $branch_name == feature* ]]; then
+              echo "Deleting merged feature branch: $branch_name"
+              git push origin --delete $branch_name
+            else
+              echo "Branch $branch_name does not match 'feature/' pattern. Skipping deletion."
+            fi
+          done
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
