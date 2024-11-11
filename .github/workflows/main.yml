@@ -1,62 +1,22 @@
-name: Cleanup Merged Branches
+name: Validate Commit Messages
 
 on:
   pull_request:
-    types:
-      - closed
+    branches:
+      - develop
 
 jobs:
-  cleanup:
-    if: github.event.pull_request.merged == true  # Only run if the PR is merged
+  validate-commit:
     runs-on: ubuntu-latest
     steps:
-      - name: Check Current Time
-        id: check_time
-        run: |
-          current_time=$(date +%H%M)
-          cutoff_time=1930  
-          if [ "$current_time" -gt "$cutoff_time" ]; then
-            echo "Action will not run after 5:30 PM. Current time is $current_time."
-            exit 0  # Exit the workflow without marking it as failed
-          else
-            echo "Proceeding with branch deletion. Current time is $current_time."
-          fi
-
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Checkout master branch
+      - name: Validate commit messages
         run: |
-          git checkout master
-          git pull origin master  # Ensure the master branch is up to date
-
-      - name: Install GitHub CLI
-        run: |
-          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /usr/share/keyrings/githubcli-archive-keyring.gpg >/dev/null
-          sudo apt update
-          sudo apt install gh
-
-      - name: Delete Merged Feature Branches
-        run: |
-          git fetch --prune
-          
-          # Get a list of all merged pull requests
-          merged_branches=$(gh pr list --state merged --json headRefName -q '.[].headRefName')
-
-          # Loop through each branch and delete if it follows 'feature*' naming
-          for branch_name in $merged_branches; do
-            if [[ $branch_name == feature* ]]; then
-              echo "Deleting merged feature branch: $branch_name"
-              
-              # Check if the branch exists on the remote before attempting deletion
-              if git ls-remote --exit-code --heads origin $branch_name; then
-                git push origin --delete $branch_name
-              else
-                echo "Branch $branch_name does not exist on the remote. Skipping deletion."
-              fi
-            else
-              echo "Branch $branch_name does not match 'feature*' pattern. Skipping deletion."
+          git log --pretty=format:"%s" FETCH_HEAD..HEAD | while read line; do
+            if [[ ! "$line" =~ ^(feat|fix|docs|style|refactor|test|chore):\ .{1,100}$ ]]; then
+              echo "Invalid commit message format: $line"
+              exit 1
             fi
           done
-        env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
