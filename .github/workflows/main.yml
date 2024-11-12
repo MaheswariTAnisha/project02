@@ -14,7 +14,9 @@ jobs:
 
       - name: Validate commit messages
         run: |
-          git log --pretty=format:"%s" FETCH_HEAD..HEAD | while read line; do
+          set -e  # Exit on any command failure
+          IFS=$'\n'  # Handle multiline commit messages
+          git log --pretty=format:"%s" FETCH_HEAD..HEAD | while read -r line; do
             if [[ ! "$line" =~ ^(feat|fix|docs|style|refactor|test|chore):\ .{1,100}$ ]]; then
               echo "Invalid commit message format: $line"
               exit 1
