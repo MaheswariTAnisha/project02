@@ -18,5 +18,7 @@ jobs:
             if [[ ! "$line" =~ ^(feat|fix|docs|style|refactor|test|chore):\ .{1,100}$ ]]; then
               echo "Invalid commit message format: $line"
               exit 1
+            else
+              echo "Commit message successfully passed validation: $line"
             fi
           done
